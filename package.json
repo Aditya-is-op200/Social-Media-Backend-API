@@ -1,0 +1,19 @@
+{
+  "name": "social-media-backend-api",
+  "version": "1.0.0",
+  "description": "Building a Youtube and Twitter hybrid social media backend",
+  "keywords": [
+    "javascript",
+    "backend",
+    "social",
+    "media",
+    "project"
+  ],
+  "license": "ISC",
+  "author": "Aditya Singh",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
