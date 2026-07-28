@@ -3,8 +3,8 @@ import path from "path";
 
 
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, "./public/temp");
+    destination: function (req, file, cb) { // this is a callback function which we have defined here.
+        cb(null, "./public/temp"); // to store temporary files in this folder
     },
 
     filename: function (req, file, cb) {

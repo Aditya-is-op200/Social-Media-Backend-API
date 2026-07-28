@@ -1,34 +1,81 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { User } from "../models/user.model.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const registerUser = asyncHandler(async (req, res) => {
-    // Your registration logic here
-    // res.status(201).json({ message: "User registered successfully" });
-    //removing the above line , now writing the logic for registering the user in the database
 
+    // Get user details from frontend
+    const { fullName, email, username, password } = req.body;
 
-    //s1 :If the data is coming from the form or directly from json then we can get the data from the req.body object.
-    //However for url we have to do it differently , we have to get the data from the req.query object.
+    // Validation
+    if (
+        [fullName, email, username, password].some(
+            (field) => field?.trim() === ""
+        )
+    ) {
+        throw new ApiError(400, "All fields are required");
+    }
 
-    const { username, email, fullname, password } = req.body;
-    // Validate required fields on Postman , go to body and select raw and then select json and then send the request with the required fields in the json format.
+    // Check if user already exists
+    const existedUser = await User.findOne({
+        $or: [{ username }, { email }]
+    });
 
+    if (existedUser) {
+        throw new ApiError(409, "User with email or username already exists");
+    }
 
-    //s1(b) : The above doesnt handle files like avatar and coverImage , so we have to handle them separately. We can use multer for that. We will create a middleware for that and then use it in the route.
-    // Process to do Step s1(b) : Goto src/middlewares/multer.middleware.js and write the code for handling the files. Then we will use that middleware in the route. 
-    // s1(b) : Now we will use the multer middleware in the route. Goto src/routes/user.routes.js and import the multer middleware that is 'upload' and then use it in the route. Then we will get the files from the req.files object in the controller.
+    // Get uploaded file paths
+    const avatarLocalPath = req.files?.avatar?.[0]?.path;
+    const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
+
+    // Avatar is mandatory
+    if (!avatarLocalPath) {
+        throw new ApiError(400, "Avatar file is required");
+    }
+
+    // Upload files to Cloudinary
+    const avatar = await uploadOnCloudinary(avatarLocalPath);
+    const coverImage = coverImageLocalPath
+        ? await uploadOnCloudinary(coverImageLocalPath)
+        : null;
+
+    if (!avatar) {
+        throw new ApiError(400, "Avatar file upload failed");
+    }
+
+    // Create user
+    const user = await User.create({
+        fullName,
+        avatar: avatar.url,
+        coverImage: coverImage?.url || "",
+        email,
+        password,
+        username: username.toLowerCase(),
+    });
+
+    // Remove sensitive fields
+    const createdUser = await User.findById(user._id).select(
+        "-password -refreshToken"
+    );
+
+    if (!createdUser) {
+        throw new ApiError(
+            500,
+            "Something went wrong while registering the user"
+        );
+    }
+
+    // Send response
+    return res.status(201).json(
+        new ApiResponse(
+            201,
+            createdUser,
+            "User registered successfully"
+        )
+    );
 });
 
-export default registerUser;
-
- /**
-    ALgorithm for registering the user in the database:
-        S1:Get user details from frontend
-        S2:Validate all required fields (not empty)
-        S3:Check if user already exists (username/email)
-        S4:Check uploaded files (avatar required, coverImage optional)
-        S5:Upload images to Cloudinary
-        S6:Create user object and save it in the database
-        S7:Fetch created user without password and refreshToken
-        S8:Verify user creation was successful, else throw error
-        S9:Return success response
-    */
+export { registerUser };
