@@ -4,6 +4,25 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
+// we use async and not asyncHandler because this function is not going to interact with the frontend so no need of try catch block
+const generateAccessAndRefereshTokens = async (userId) => {
+    try {
+        const user = await User.findById(userId)
+        const accessToken = user.generateAccessToken()
+        const refreshToken = user.generateRefreshToken()
+
+        // storing the token in the database for future use 
+        user.refreshToken = refreshToken
+        await user.save({ validateBeforeSave: false }) //checks against the old instance and updates it . 
+        return { accessToken, refreshToken }
+    } catch (error) {
+        throw new ApiError(500, "Something went wrong while generating referesh and access token")
+    }
+}
+/* validateBeforeSave : since password was a mandatory field and we just wanted to store this without interacting with the password
+ Its like saying to the db that i know what i am doing , let it happen even if other fields are true.
+ user is a Mongoose document instance, not just a plain JavaScript object
+*/
 const registerUser = asyncHandler(async (req, res) => {
     // Get user details from frontend (supporting both fullName and fullname)
     const { fullName, fullname, email, username, password } = req.body || {};
@@ -81,4 +100,94 @@ const registerUser = asyncHandler(async (req, res) => {
     );
 });
 
-export { registerUser };
+const loginUser = asyncHandler(async (req, res) => {
+    // req body -> data
+    // username or email
+    //find the user
+    //password check
+    //access and referesh token
+    //send cookie
+
+    const { email, username, password } = req.body || {};
+
+    if (!username && !email) {
+        throw new ApiError(400, "Username or email is required");
+    }
+
+    if (!password) {
+        throw new ApiError(400, "Password is required");
+    }
+
+    const user = await User.findOne({
+        $or: [
+            { username: username ? username.toLowerCase() : undefined },
+            { email: email ? email.toLowerCase() : undefined }
+        ].filter(Boolean)
+    });
+
+    if (!user) {
+        throw new ApiError(404, "User does not exist");
+    }
+
+    const isPasswordValid = await user.isPasswordCorrect(password);
+
+    if (!isPasswordValid) {
+        throw new ApiError(401, "Invalid user credentials");
+    }
+
+    const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(user._id);
+
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    };
+
+    return res
+        .status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json(
+            new ApiResponse(
+                200,
+                {
+                    user: loggedInUser,
+                    accessToken,
+                    refreshToken
+                },
+                "User logged In Successfully"
+            )
+        );
+});
+
+const logoutUser = asyncHandler(async (req, res) => {
+    await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $unset: {
+                refreshToken: 1
+            }
+        },
+        {
+            new: true // so we get the updated value 
+        }
+    );
+
+    const options = {
+        httpOnly: true, // if true, only modifiable on server, not frontend
+        secure: true   // if true, only send cookie over HTTPS
+    };
+
+    return res
+        .status(200)
+        .clearCookie("accessToken", options)
+        .clearCookie("refreshToken", options)
+        .json(new ApiResponse(200, {}, "User logged Out"));
+});
+
+export {
+    registerUser,
+    loginUser,
+    logoutUser
+};
