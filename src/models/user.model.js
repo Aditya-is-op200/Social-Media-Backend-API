@@ -1,13 +1,13 @@
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 
 const userSchema = new mongoose.Schema(
     {
         username : {
             type : String,
             required : [true, "Username is required"],
-            unique : [true, "Username already exists"],
+            unique : true,
             trim : true,
             minLength : [3, "Username must be at least 3 characters long"],
             maxLength : [30, "Username must be at most 30 characters long"],
@@ -18,12 +18,12 @@ const userSchema = new mongoose.Schema(
         },
         email : {
             type : String,
-            required : [true, "Username is required"],
-            unique : [true, "Username already exists"],
+            required : [true, "Email is required"],
+            unique : true,
             lowercase : true,
             trim : true,
         },
-        fullname : {
+        fullName : {
             type : String,
             required : [true, "Fullname is required"],
             trim : true,
@@ -84,7 +84,7 @@ userSchema.methods.generateAccessToken = function(){
             _id : this._id, // this is generated automaitcally in the mongodb 
             email : this.email,
             username : this.username,
-            fullname : this.fullname,
+            fullName : this.fullName,
             
             //this is the payload 
             // it contains the information of the user 
@@ -107,3 +107,5 @@ userSchema.methods.generateRefreshToken = function(){
         }
     );
 }
+
+export const User = mongoose.model("User", userSchema);

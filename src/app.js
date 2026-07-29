@@ -27,9 +27,19 @@ import userRoutes from "./routes/user.routes.js"
 
 app.use("/api/v1/users", userRoutes)
 
+// Global error handling middleware (must be registered AFTER routes)
+app.use((err, req, res, next) => {
+    const statusCode = err.statusCode || 500;
+    const message = err.message || "Something went wrong";
+    return res.status(statusCode).json({
+        statusCode,
+        success: false,
+        message,
+        errors: err.errors || []
+    });
+});
 
-
-export default app
+export default app;
 
 /*
 When this above line is executed, it means that any request that starts with "/users" will be handled by the userRoutes router.

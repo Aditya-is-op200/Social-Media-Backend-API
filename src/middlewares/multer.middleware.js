@@ -1,3 +1,6 @@
+// Multer middleware is used to save files temporarily on the server
+
+
 import multer from "multer";
 import path from "path";
 

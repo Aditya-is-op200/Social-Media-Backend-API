@@ -5,14 +5,17 @@ import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const registerUser = asyncHandler(async (req, res) => {
-
-    // Get user details from frontend
-    const { fullName, email, username, password } = req.body;
+    // Get user details from frontend (supporting both fullName and fullname)
+    const { fullName, fullname, email, username, password } = req.body || {};
+    const userFullName = (fullName || fullname || "").toString().trim();
+    const emailStr = (email || "").toString().trim();
+    const usernameStr = (username || "").toString().trim();
+    const passwordStr = (password || "").toString().trim();
 
     // Validation
     if (
-        [fullName, email, username, password].some(
-            (field) => field?.trim() === ""
+        [userFullName, emailStr, usernameStr, passwordStr].some(
+            (field) => field === ""
         )
     ) {
         throw new ApiError(400, "All fields are required");
@@ -20,7 +23,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
     // Check if user already exists
     const existedUser = await User.findOne({
-        $or: [{ username }, { email }]
+        $or: [{ username: usernameStr.toLowerCase() }, { email: emailStr.toLowerCase() }]
     });
 
     if (existedUser) {
@@ -48,12 +51,12 @@ const registerUser = asyncHandler(async (req, res) => {
 
     // Create user
     const user = await User.create({
-        fullName,
-        avatar: avatar.url,
-        coverImage: coverImage?.url || "",
-        email,
-        password,
-        username: username.toLowerCase(),
+        fullName: userFullName,
+        avatar: avatar.url || avatar.secure_url,
+        coverImage: coverImage?.url || coverImage?.secure_url || "",
+        email: emailStr,
+        password: passwordStr,
+        username: usernameStr.toLowerCase(),
     });
 
     // Remove sensitive fields
