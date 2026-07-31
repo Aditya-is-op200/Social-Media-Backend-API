@@ -13,4 +13,6 @@ const subsciptionSchema = new Schema({
 
 
 
-export const Subsciption = mongoose.model("Subsciption", subsciptionSchema)
+const subscriptionSchema = subsciptionSchema;
+export const Subscription = mongoose.model("Subscription", subscriptionSchema);
+export const Subsciption = Subscription;

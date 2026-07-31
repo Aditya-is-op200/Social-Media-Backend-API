@@ -1,11 +1,11 @@
-import mongoose , {Schema} from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
-
+// the paginate plugin will help us to paginate the videos and fetch them in chunks
 
 const videoSchema = new Schema({
-    videoFile : {
-        type : String, //cloudinary url of the video which is uploaded by the user 
-       required : [true, "Video file is required"],
+    videoFile: {
+        type: String, //cloudinary url of the video which is uploaded by the user 
+        required: [true, "Video file is required"],
         trim : true,
     },
     thumbnail : {
