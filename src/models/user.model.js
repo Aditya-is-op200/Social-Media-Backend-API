@@ -41,11 +41,12 @@ const userSchema = new mongoose.Schema(
             //cloudinary url of the image which is uploaded by the user , if user has not uploaded any image then we will use a default image url which is present in cloudinary.
             default: "https://res.cloudinary.com/dxjv0qg5f/image/upload/v1690911681/coverImage/default_coverImage_2_ozkq3r.png",
         },
-        watchHistory: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Video",
-            default: null,
-        },
+        watchHistory: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Video"
+            }
+        ], // array of video references representing user watch history
         password: {
             type: String,
             required: [true, "Password is required"],

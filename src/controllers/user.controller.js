@@ -364,6 +364,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
         )
 })
 
+// Get user channel profile details using Mongoose aggregation pipeline
 const getUserChannelProfile = asyncHandler(async (req, res) => {
     const { username } = req.params
 
@@ -378,6 +379,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
             }
         },
         {
+            // Lookup subscribers for this channel
             $lookup: {
                 from: "subscriptions",
                 localField: "_id",
@@ -386,6 +388,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
             }
         },
         {
+            // Lookup channels this user has subscribed to
             $lookup: {
                 from: "subscriptions",
                 localField: "_id",
@@ -394,6 +397,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
             }
         },
         {
+            // Add calculated fields for subscriber count and subscription status
             $addFields: {
                 subscribersCount: {
                     $size: "$subscribers"
@@ -411,6 +415,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
             }
         },
         {
+            // Project only selected fields in final output
             $project: {
                 fullName: 1,
                 username: 1,
@@ -420,13 +425,12 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
                 avatar: 1,
                 coverImage: 1,
                 email: 1
-
             }
         }
     ])
 
     if (!channel?.length) {
-        throw new ApiError(404, "channel does not exists")
+        throw new ApiError(404, "channel does not exist")
     }
 
     return res
@@ -436,8 +440,8 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         )
 })
 
-
-const getWatchHistory = asyncHandler(async(req, res) => {
+// Fetch logged-in user watch history with nested video owner details
+const getWatchHistory = asyncHandler(async (req, res) => {
 
     const user = await User.aggregate([
         {
@@ -446,6 +450,7 @@ const getWatchHistory = asyncHandler(async(req, res) => {
             }
         },
         {
+            // Lookup watched videos and populate owner profile
             $lookup: {
                 from: "videos",
                 localField: "watchHistory",
@@ -470,8 +475,8 @@ const getWatchHistory = asyncHandler(async(req, res) => {
                         }
                     },
                     {
-                        $addFields:{
-                            owner:{
+                        $addFields: {
+                            owner: {
                                 $first: "$owner"
                             }
                         }
@@ -482,14 +487,14 @@ const getWatchHistory = asyncHandler(async(req, res) => {
     ])
 
     return res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            user[0]?.watchHistory || [],
-            "Watch history fetched successfully"
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                user[0]?.watchHistory || [],
+                "Watch history fetched successfully"
+            )
         )
-    )
 })
 
 
