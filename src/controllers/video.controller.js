@@ -68,7 +68,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
     // - duration: Cloudinary automatically calculates video length (in seconds) during upload
     // - owner: ObjectId of authenticated user who published the video (from verifyJWT middleware)
     const video = await Video.create({
-        videoFile: videoFile.secure_url,
+        videoFile: videoFile.secure_url, 
         thumbnail: thumbnail.secure_url,
         title: title.trim(),
         description: description.trim(),
@@ -88,6 +88,18 @@ const publishAVideo = asyncHandler(async (req, res) => {
 //    Route : GET /api/v1/videos?page=1&limit=10&query=title&sortBy=views&sortType=desc&userId=...
 //    Auth  : Public (No JWT required for viewing video feed)
 // ─────────────────────────────────────────────────────────────
+/**
+ * Overall Purpose
+
+When someone opens YouTube's homepage, they expect to see videos. They may also:
+search for videos
+sort by views or upload date
+view videos from one creator
+load more videos as they scroll
+
+This single function handles all of those requirements.
+ */
+
 const getAllVideos = asyncHandler(async (req, res) => {
     // Extract query parameters from URL with sensible default values
     const {
