@@ -6,6 +6,10 @@ A production-style backend API for a YouTube and Twitter inspired social media p
 
 This repository does not include a frontend. It is designed to be consumed by a web app, mobile app, Postman, Thunder Client, or any HTTP client.
 
+## Interview Preparation Guide
+
+For a complete v1 project walkthrough, architecture explanation, interview questions and answers, API behavior, security discussion, scaling notes, and presentation script, see [INTERVIEW_PREP_V1.md](./INTERVIEW_PREP_V1.md).
+
 ## Project Status
 
 **v1 backend is complete.**
