@@ -8,7 +8,7 @@ This repository does not include a frontend. It is designed to be consumed by a 
 
 ## Interview Preparation Guide
 
-For a complete v1 project walkthrough, architecture explanation, interview questions and answers, API behavior, security discussion, scaling notes, and presentation script, see [INTERVIEW_PREP_V1.md](./INTERVIEW_PREP_V1.md).
+For a complete v1 project walkthrough, architecture explanation, API behavior, security discussion, scaling notes, and presentation script, see [INTERVIEW_PREP_V1.md](./INTERVIEW_PREP_V1.md). For conversational project-story questions such as why the project was built, why the tech stack was chosen, and what to improve next, see [PROJECT_STORY_QA_V1.md](./PROJECT_STORY_QA_V1.md).
 
 ## Project Status
 
